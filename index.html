@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Lookup Tool For Hotzone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply the Palatino font family */
+        body {
+            font-family: 'Palatino', sans-serif;
+            /* Animated gradient background from the first file */
+            background: linear-gradient(-45deg, #8A2BE2, #FF0000, #0000FF, #8A2BE2); /* Purple, Red, Blue, repeating purple */
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        /* Keyframes for the gradient animation */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Style for sticky table header */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+        
+        /* Helper for sort indicator */
+        .sort-indicator {
+            margin-left: 8px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* Style for dropdown options */
+        select option {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+    <div class="flex justify-center mb-8 pt-8">
+        <img src="https://media.licdn.com/dms/image/v2/D4D03AQHKtFWghLdKmg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1695697038884?e=1755129600&v=beta&t=I3DDSvoQ-zr8EokSSEgeu2m0eX6LURQpqgJImMM8uQg" alt="Avatar" class="rounded-full w-32 h-32 border-4 border-white shadow-lg transform hover:scale-105 transition-transform duration-300">
+    </div>
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-[#FFBF00] drop-shadow-md">Village Lookup Tool For Hotzone</h1><br>
+            <p style=font-size:17px;color:white;>Created by HZ Monitors</p>
+        </div>
+
+        <!-- Main control panel with glassmorphism effect -->
+        <div class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-white border-opacity-30 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                <!-- SR Filter Dropdown -->
+                <div class="flex flex-col">
+                    <label for="srFilter" class="mb-2 font-semibold text-white">Filter by State/Region:</label>
+                    <select id="srFilter" class="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-shadow duration-200 bg-white bg-opacity-20 text-white">
+                        <option value="">States/Regions</option>
+                    </select>
+                </div>
+                <!-- Township Input -->
+                <div class="flex flex-col">
+                    <label for="searchInput" class="mb-2 font-semibold text-white">Township Name:</label>
+                    <input type="text" id="searchInput" placeholder="e.g., Kanbalu" class="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-shadow duration-200 bg-white bg-opacity-20 text-white placeholder-gray-200">
+                </div>
+                <!-- Burmese Village Name Input -->
+                <div class="flex flex-col">
+                    <label for="villageMmInput" class="mb-2 font-semibold text-white">Burmese Village Name:</label>
+                    <input type="text" id="villageMmInput" placeholder="e.g., ကံကြီးကုန်း" class="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-shadow duration-200 bg-white bg-opacity-20 text-white placeholder-gray-200">
+                </div>
+                <!-- Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="searchData()" class="w-full bg-gradient-to-r from-teal-400 to-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:from-teal-500 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-transform duration-200 active:scale-95">
+                        Search
+                    </button>
+                    <button onclick="clearResults()" class="w-full bg-gradient-to-r from-red-400 to-orange-500 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:from-red-500 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 transition-transform duration-200 active:scale-95">
+                        Clear
+                    </button>
+                </div>
+            </div>
+             <!-- Status/Error Messages -->
+            <div id="loadingMessage" class="mt-4 text-center text-white font-medium h-6 drop-shadow" style="display: none;">Loading data...</div>
+            <div id="errorMessage" class="mt-4 text-center text-rose-300 font-medium h-6 drop-shadow" style="display: none;"></div>
+            <div id="resultsInfo" class="mt-4 text-center text-lime-200 font-medium h-6 drop-shadow" style="display: none;"></div>
+        </div>
+
+        <!-- Results Table Container -->
+        <div id="tableContainer" class="mt-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg border border-white border-opacity-30 overflow-hidden" style="display: none;">
+            <div class="overflow-y-auto">
+                <table class="min-w-full divide-y divide-white divide-opacity-30">
+                    <thead id="tableHeader" class="bg-white bg-opacity-30"></thead>
+                    <tbody id="tableBody" class="divide-y divide-white divide-opacity-20"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- About Section -->
+        <section class="mt-12 bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white border-opacity-30">
+            <h2 class="text-3xl font-bold text-white text-center mb-6 drop-shadow-md">About This Tool</h2>
+            <div class="grid md:grid-cols-2 gap-8 text-white">
+                <div class="summary-text">
+                    <p class="mb-4">♦ The database includes information villages across Myanmar's 8 states and regions for hotzone monitors.</p>
+                    <p>♦ The data is sourced from the Myanmar Information Management Unit (MIMU), ensuring reliability and accuracy. We've created an intuitive interface that allows for easy searching and sorting of village information.</p>
+                     <p class="text-center text-sm mt-4">
+                        <a href="https://themimu.info/" target="_blank" rel="noopener noreferrer" class="text-amber-200 hover:text-amber-100 font-semibold">Data Source: MIMU</a>
+                    </p>
+                </div>
+                <div class="features">
+                    <h3 class="text-xl font-semibold mb-4">Key Features</h3>
+                    <ul class="list-none space-y-2">
+                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Search by township and/or Burmese village name.</li>
+                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Sort results by any column for better analysis.</li>
+                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Responsive design works on all devices.</li>
+                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Real-time data loading and filtering.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-white text-sm py-8">
+            <p>ACA© 2025 Villages Lookup Tool| All Rights Reserved| </p>
+        </footer>
+    </div>
+
+    <script>
+        let csvData = [];
+        let headers = [];
+        let currentResults = [];
+        let currentSortColumn = '';
+        let currentSortDirection = 'asc';
+
+        // --- DOM Element References ---
+        const searchInput = document.getElementById('searchInput');
+        const villageMmInput = document.getElementById('villageMmInput');
+        const srFilter = document.getElementById('srFilter');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const tableContainer = document.getElementById('tableContainer');
+        const tableHeader = document.getElementById('tableHeader');
+        const tableBody = document.getElementById('tableBody');
+
+        // --- Event Listeners ---
+        window.onload = loadCSVData;
+        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
+        villageMmInput.addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
+        srFilter.addEventListener('change', searchData);
+
+        // --- Data Loading and Parsing ---
+        async function loadCSVData() {
+            try {
+                showLoading(true);
+                const response = await fetch('https://raw.githubusercontent.com/achannaung/Datasets/main/Villages_HZ.csv');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const csvText = await response.text();
+                parseCSV(csvText);
+                showLoading(false);
+            } catch (error) {
+                showLoading(false);
+                showError('Failed to load data: ' + error.message);
+                console.error('Error loading CSV:', error);
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+            
+            csvData = lines.slice(1).map(line => {
+                const values = parseCSVLine(line);
+                const row = {};
+                if (values.length === headers.length) {
+                    headers.forEach((header, index) => {
+                        row[header] = values[index];
+                    });
+                }
+                return row;
+            }).filter(row => Object.keys(row).length > 0);
+            
+            console.log(`Loaded ${csvData.length} records.`);
+            populateSrFilter();
+        }
+
+        function populateSrFilter() {
+            const srColumn = headers.find(h => h.toLowerCase() === 'sr');
+            if (!srColumn) {
+                console.error("SR column not found for filter.");
+                return;
+            }
+            const srValues = [...new Set(csvData.map(row => row[srColumn]))].sort();
+            srValues.forEach(value => {
+                if (value) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    srFilter.appendChild(option);
+                }
+            });
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (const char of line) {
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim().replace(/"/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim().replace(/"/g, ''));
+            return result;
+        }
+
+        // --- Search and Filter Logic ---
+        function searchData() {
+            const selectedSr = srFilter.value;
+            const searchTermTownship = searchInput.value.trim().toLowerCase();
+            const searchTermVillageMM = villageMmInput.value.trim().toLowerCase();
+
+            if (!selectedSr && !searchTermTownship && !searchTermVillageMM) {
+                showError('Please select a region or enter a search term.');
+                hideResults();
+                return;
+            }
+            if (csvData.length === 0) {
+                showError('Data not loaded. Please wait.');
+                hideResults();
+                return;
+            }
+
+            const srColumn = headers.find(h => h.toLowerCase() === 'sr');
+            const townshipColumn = headers.find(h => h.toLowerCase().includes('township'));
+            const villageMmColumn = headers.find(h => h.toLowerCase().includes('village_mm'));
+
+            let filteredData = csvData;
+
+            if (selectedSr) {
+                if (!srColumn) return showError('SR column not found.');
+                filteredData = filteredData.filter(row => row[srColumn] === selectedSr);
+            }
+
+            if (searchTermTownship) {
+                if (!townshipColumn) return showError('Township column not found.');
+                filteredData = filteredData.filter(row => row[townshipColumn]?.toLowerCase().includes(searchTermTownship));
+            }
+
+            if (searchTermVillageMM) {
+                if (!villageMmColumn) return showError('Burmese Village Name column not found.');
+                filteredData = filteredData.filter(row => row[villageMmColumn]?.toLowerCase().includes(searchTermVillageMM));
+            }
+
+            if (villageMmColumn) {
+                filteredData.sort((a, b) => (a[villageMmColumn] || '').localeCompare(b[villageMmColumn] || ''));
+                currentSortColumn = villageMmColumn;
+                currentSortDirection = 'asc';
+            }
+
+            currentResults = filteredData;
+            displayResults(currentResults);
+        }
+
+        // --- Sorting Logic ---
+        function sortByColumn(columnName) {
+            if (currentResults.length === 0) return;
+
+            const direction = (currentSortColumn === columnName && currentSortDirection === 'asc') ? 'desc' : 'asc';
+            
+            currentResults.sort((a, b) => {
+                const valueA = (a[columnName] || '').toString().toLowerCase();
+                const valueB = (b[columnName] || '').toString().toLowerCase();
+                return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+            });
+
+            currentSortColumn = columnName;
+            currentSortDirection = direction;
+            
+            displayResults(currentResults, true);
+        }
+
+        // --- UI Display Functions ---
+        function displayResults(data, isSortAction = false) {
+            hideError();
+            
+            if (data.length === 0) {
+                showInfo('No results found for your search.', 'warn');
+                tableContainer.style.display = 'none';
+                return;
+            }
+
+            if (isSortAction) {
+                const directionText = currentSortDirection === 'asc' ? 'A-Z' : 'Z-A';
+                showInfo(`${data.length} result(s) sorted by "${currentSortColumn}" (${directionText})`, 'success');
+            } else {
+                showInfo(`Found ${data.length} result(s).`, 'success');
+            }
+            
+            createTable(data);
+            tableContainer.style.display = 'block';
+        }
+
+        function createTable(data) {
+            tableHeader.innerHTML = '';
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.className = 'px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer';
+                th.onclick = () => sortByColumn(header);
+                
+                let headerHTML = header;
+                if (currentSortColumn === header) {
+                    const indicator = currentSortDirection === 'asc' ? '↑' : '↓';
+                    headerHTML += `<span class="sort-indicator">${indicator}</span>`;
+                }
+                th.innerHTML = headerHTML;
+                headerRow.appendChild(th);
+            });
+            tableHeader.appendChild(headerRow);
+
+            tableBody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white hover:bg-opacity-10';
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
+                    td.textContent = row[header] || '';
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function clearResults() {
+            searchInput.value = '';
+            villageMmInput.value = '';
+            srFilter.value = '';
+            hideResults();
+            hideError();
+            resultsInfo.style.display = 'none';
+        }
+        
+        function hideResults() {
+            tableContainer.style.display = 'none';
+            currentResults = [];
+            currentSortColumn = '';
+        }
+
+        // --- UI Helpers ---
+        function showLoading(show) { loadingMessage.style.display = show ? 'block' : 'none'; }
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            resultsInfo.style.display = 'none';
+        }
+        function hideError() { errorMessage.style.display = 'none'; }
+        function showInfo(message, type) {
+            resultsInfo.textContent = message;
+            resultsInfo.className = 'mt-4 text-center font-medium h-6 drop-shadow ';
+            if (type === 'success') resultsInfo.classList.add('text-lime-200');
+            else if (type === 'warn') resultsInfo.classList.add('text-amber-200');
+            resultsInfo.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
