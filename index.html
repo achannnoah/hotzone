@@ -3,139 +3,503 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Village Lookup Tool For Hotzone</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Hotzone | Village Lookup Pro</title>
+    <!-- Google Fonts: Inter for high readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        /* Apply the Palatino font family */
+        :root {
+            --bg-body: #f6f8fb;
+            --bg-gradient: linear-gradient(180deg, #eef7ff 0%, #f8fafc 42%, #f6f8fb 100%);
+            --surface: #ffffff;
+            --surface-raised: #ffffff;
+            --surface-soft: #f1f6fb;
+            --card-bg: var(--surface);
+            --card-border: #dbe5ee;
+            --text-main: #182230;
+            --text-muted: #64748b;
+            --accent: #0ea5e9;
+            --accent-2: #f59e0b;
+            --accent-hover: #0284c7;
+            --input-bg: #ffffff;
+            --table-header: #f0f7fd;
+            --table-row-hover: #f0f9ff;
+            --danger-bg: #fff1f2;
+            --danger-text: #be123c;
+            --shadow: 0 20px 55px rgba(15, 23, 42, 0.09);
+            --soft-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+            --focus-ring: rgba(14, 165, 233, 0.18);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #101114;
+            --bg-gradient: #101114;
+            --surface: #17191f;
+            --surface-raised: #20232b;
+            --surface-soft: #242832;
+            --card-bg: var(--surface);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f7f7f8;
+            --text-muted: #a7afbd;
+            --accent: #38bdf8;
+            --accent-2: #f97316;
+            --accent-hover: #0ea5e9;
+            --input-bg: #111318;
+            --table-header: #232832;
+            --table-row-hover: rgba(56, 189, 248, 0.08);
+            --danger-bg: rgba(248, 113, 113, 0.12);
+            --danger-text: #fca5a5;
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+            --soft-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+            --focus-ring: rgba(56, 189, 248, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
         body {
-            font-family: 'Palatino', sans-serif;
-            /* Animated gradient background from the first file */
-            background: linear-gradient(-45deg, #8A2BE2, #FF0000, #0000FF, #8A2BE2); /* Purple, Red, Blue, repeating purple */
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
+            margin: 0;
+            padding: 24px;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* Keyframes for the gradient animation */
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Style for sticky table header */
-        thead th {
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000;
+            background: var(--surface-raised);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--soft-shadow);
+            backdrop-filter: blur(12px);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .container {
+            max-width: 1180px;
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid rgba(219, 229, 238, 0.9);
+            padding: 34px;
+            border-radius: 22px;
+            margin: 48px auto 24px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        [data-theme="dark"] .container {
+            border-color: var(--card-border);
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 5px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        }
+
+        .header-section {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 28px;
+            padding: 4px 0 24px;
+            border-bottom: 1px solid var(--card-border);
+            text-align: left;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: block;
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            padding: 4px;
+            background: linear-gradient(145deg, #e0f2fe, #fff7ed);
+            object-fit: cover;
+            box-shadow: 0 14px 26px rgba(14, 165, 233, 0.18);
+        }
+
+        .header-copy {
+            min-width: 0;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 3vw, 2.8rem);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 0;
+            color: var(--text-main);
+            line-height: 1.05;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            font-weight: 700;
+        }
+
+        .subtitle::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 8px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            vertical-align: middle;
+        }
+
+        /* Search Form */
+        .search-form {
+            background: linear-gradient(180deg, var(--surface-raised), var(--surface-soft));
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: var(--soft-shadow);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            min-width: 0;
+        }
+
+        .field-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-left: 0;
+        }
+
+        input[type="text"] {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 13px 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            min-height: 48px;
+            width: 100%;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 0;
+        }
+
+        button.btn {
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 12px 24px rgba(14, 165, 233, 0.24);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        [data-theme="dark"] .btn-secondary {
+            background: var(--surface);
+        }
+
+        .btn-secondary:hover {
+            background: var(--input-bg);
+        }
+
+        /* Table UI */
+        .table-container {
+            margin-top: 16px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            background: var(--surface-raised);
+            box-shadow: var(--soft-shadow);
+        }
+
+        .table-scroll {
+            max-height: 600px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: var(--table-header);
+            color: var(--accent);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            padding: 14px 16px;
+            font-weight: 800;
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
         }
 
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
-        
-        /* Helper for sort indicator */
-        .sort-indicator {
-            margin-left: 8px;
-            font-size: 0.9em;
-            opacity: 0.8;
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.95rem;
+            color: var(--text-main);
+            white-space: nowrap;
         }
 
-        /* Style for dropdown options */
-        select option {
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td {
+            background: var(--table-row-hover);
+        }
+
+        .results-info {
+            background: var(--surface-raised);
+            border: 1px solid var(--card-border);
+            padding: 14px 16px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Statuses */
+        .loading-spinner {
+            text-align: center;
+            padding: 28px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .error-box {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            margin: 16px 0;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .about-section {
+            max-width: 1180px;
+            width: 100%;
+            margin-bottom: 48px;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .about-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 24px;
+            border-radius: 18px;
+            box-shadow: var(--soft-shadow);
+        }
+
+        .about-card h3 {
+            color: var(--accent);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            margin: 40px 0;
+            opacity: 0.5;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body { padding: 14px; }
+            .search-grid { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; }
+            .about-grid { grid-template-columns: 1fr; }
+            .container { padding: 20px; margin-top: 76px; border-radius: 18px; }
+            .header-section { grid-template-columns: 1fr; gap: 14px; }
+            .theme-toggle { top: 14px; right: 14px; }
+            button.btn { width: 100%; }
         }
     </style>
 </head>
-<body class="text-white min-h-screen">
-    <div class="flex justify-center mb-8 pt-8">
-        <img src="https://raw.githubusercontent.com/noahchan5/townshiplookup/refs/heads/main/Gemini_Generated_Image_h42awvh42awvh42a.png" alt="Avatar" class="rounded-full w-32 h-32 border-4 border-white shadow-lg transform hover:scale-105 transition-transform duration-300">
-    </div>
+<body data-theme="light">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-[#FFBF00] drop-shadow-md">Village Lookup Tool For Hotzone</h1><br>
-            <p style=font-size:17px;color:white;>Created by ACA</p>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span>Dark Mode</span>
+    </button>
+
+    <div class="container">
+        <div class="header-section">
+            <div class="avatar-container">
+                <img src="https://github.com/noahchan5/townshiplookup/blob/main/1757998150399.jpeg?raw=true" alt="Tactical Logo" class="avatar">
+            </div>
+            <div class="header-copy">
+                <h1>Village Lookup Tool</h1>
+                <p class="subtitle">Created by ACA</p>
+            </div>
         </div>
 
-        <!-- Main control panel with glassmorphism effect -->
-        <div class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-white border-opacity-30 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                <!-- SR Filter Dropdown -->
-                <div class="flex flex-col">
-                    <label for="srFilter" class="mb-2 font-semibold text-white">Filter by State/Region:</label>
-                    <select id="srFilter" class="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-shadow duration-200 bg-white bg-opacity-20 text-white">
-                        <option value="">States/Regions</option>
-                    </select>
+        <div class="search-form">
+            <div class="search-grid">
+                <div class="field-group">
+                    <label>Township Name</label>
+                    <input type="text" id="searchInput" placeholder="e.g. Kanbalu">
                 </div>
-                <!-- Township Input -->
-                <div class="flex flex-col">
-                    <label for="searchInput" class="mb-2 font-semibold text-white">Township Name:</label>
-                    <input type="text" id="searchInput" placeholder="e.g., Kanbalu" class="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-shadow duration-200 bg-white bg-opacity-20 text-white placeholder-gray-200">
+                <div class="field-group">
+                    <label>Burmese Village Name</label>
+                    <input type="text" id="villageMmInput" placeholder="ဥပမာ - ကံကြီးကုန်း">
                 </div>
-                <!-- Burmese Village Name Input -->
-                <div class="flex flex-col">
-                    <label for="villageMmInput" class="mb-2 font-semibold text-white">Burmese Village Name:</label>
-                    <input type="text" id="villageMmInput" placeholder="e.g., ကံကြီးကုန်း" class="w-full px-4 py-2 border border-white border-opacity-30 rounded-lg focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-shadow duration-200 bg-white bg-opacity-20 text-white placeholder-gray-200">
-                </div>
-                <!-- Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <button onclick="searchData()" class="w-full bg-gradient-to-r from-teal-400 to-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:from-teal-500 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-transform duration-200 active:scale-95">
+                <div class="actions">
+                    <button onclick="searchData()" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         Search
                     </button>
-                    <button onclick="clearResults()" class="w-full bg-gradient-to-r from-red-400 to-orange-500 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:from-red-500 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 transition-transform duration-200 active:scale-95">
-                        Clear
-                    </button>
+                    <button onclick="clearResults()" class="btn btn-secondary">Clear</button>
                 </div>
             </div>
-             <!-- Status/Error Messages -->
-            <div id="loadingMessage" class="mt-4 text-center text-white font-medium h-6 drop-shadow" style="display: none;">Loading data...</div>
-            <div id="errorMessage" class="mt-4 text-center text-rose-300 font-medium h-6 drop-shadow" style="display: none;"></div>
-            <div id="resultsInfo" class="mt-4 text-center text-lime-200 font-medium h-6 drop-shadow" style="display: none;"></div>
         </div>
 
-        <!-- Results Table Container -->
-        <div id="tableContainer" class="mt-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg border border-white border-opacity-30 overflow-hidden" style="display: none;">
-            <div class="overflow-y-auto">
-                <table class="min-w-full divide-y divide-white divide-opacity-30">
-                    <thead id="tableHeader" class="bg-white bg-opacity-30"></thead>
-                    <tbody id="tableBody" class="divide-y divide-white divide-opacity-20"></tbody>
-                </table>
-            </div>
+        <div id="loadingMessage" class="loading-spinner" style="display: none;">
+            Accessing Remote Database...
         </div>
         
-        <!-- About Section -->
-        <section class="mt-12 bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white border-opacity-30">
-            <h2 class="text-3xl font-bold text-white text-center mb-6 drop-shadow-md">About This Tool</h2>
-            <div class="grid md:grid-cols-2 gap-8 text-white">
-                <div class="summary-text">
-                    <p class="mb-4">♦ The database includes information villages across Myanmar's 8 states and regions for hotzone monitors.</p>
-                    <p>♦ The data is sourced from the Myanmar Information Management Unit (MIMU), ensuring reliability and accuracy. We've created an intuitive interface that allows for easy searching and sorting of village information.</p>
-                     <p class="text-center text-sm mt-4">
-                        <a href="https://themimu.info/" target="_blank" rel="noopener noreferrer" class="text-amber-200 hover:text-amber-100 font-semibold">Data Source: MIMU</a>
-                    </p>
-                </div>
-                <div class="features">
-                    <h3 class="text-xl font-semibold mb-4">Key Features</h3>
-                    <ul class="list-none space-y-2">
-                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Search by township and/or Burmese village name.</li>
-                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Sort results by any column for better analysis.</li>
-                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Responsive design works on all devices.</li>
-                        <li class="flex items-start"><span class="text-teal-300 mr-2">✔</span> Real-time data loading and filtering.</li>
-                    </ul>
+        <div id="errorMessage" class="error-box" style="display: none;"></div>
+        
+        <div id="resultsWrapper" style="display: none; margin-top: 40px;">
+            <div class="results-info">
+                <span id="resultsCount">0 Records Found</span>
+                <button onclick="exportToCSV()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.7rem; border-radius: 8px;">
+                    Export Results (CSV)
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table id="resultsTable">
+                        <thead id="tableHeader"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
                 </div>
             </div>
-        </section>
-
-        <footer class="text-center text-white text-sm py-8">
-            <p>ACA© 2025 Villages Lookup Tool| All Rights Reserved| </p>
-        </footer>
+        </div>
     </div>
+
+    <div class="about-section">
+        <div class="about-grid">
+            <div class="about-card">
+                <h3>Intelligence Source</h3>
+                <p style="font-size: 0.9rem; line-height: 1.6; opacity: 0.8;">
+                    Data sourced from the <strong>Myanmar Information Management Unit (MIMU)</strong>. This database covers 8 critical states and regions for strategic monitoring.
+                </p>
+            </div>
+            <div class="about-card">
+                <h3>Monitor Capabilities</h3>
+                <ul style="font-size: 0.9rem; line-height: 1.8; opacity: 0.8; padding-left: 18px;">
+                    <li>High-speed filtering across 10,000+ records</li>
+                    <li>Dual-language Unicode search</li>
+                    <li>Dynamic field-level sorting</li>
+                    <li>Tactical export for offline mission logs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>ACA© 2026 | Data Authorization: MIMU</p>
+    </footer>
 
     <script>
         let csvData = [];
@@ -144,243 +508,221 @@
         let currentSortColumn = '';
         let currentSortDirection = 'asc';
 
-        // --- DOM Element References ---
-        const searchInput = document.getElementById('searchInput');
-        const villageMmInput = document.getElementById('villageMmInput');
-        const srFilter = document.getElementById('srFilter');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const errorMessage = document.getElementById('errorMessage');
-        const resultsInfo = document.getElementById('resultsInfo');
-        const tableContainer = document.getElementById('tableContainer');
-        const tableHeader = document.getElementById('tableHeader');
-        const tableBody = document.getElementById('tableBody');
+        // Theme Toggle Logic
+        function toggleTheme() {
+            const body = document.body;
+            const btnText = document.querySelector('#themeBtn span');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            btnText.innerText = isDark ? 'Dark Mode' : 'Light Mode';
+        }
 
-        // --- Event Listeners ---
-        window.onload = loadCSVData;
-        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
-        villageMmInput.addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
-        srFilter.addEventListener('change', searchData);
+        window.onload = function() {
+            loadCSVData();
+            
+            // Enter key support
+            [document.getElementById('searchInput'), document.getElementById('villageMmInput')].forEach(input => {
+                input.addEventListener('keypress', e => { if (e.key === 'Enter') searchData(); });
+            });
+        };
 
-        // --- Data Loading and Parsing ---
         async function loadCSVData() {
             try {
                 showLoading(true);
                 const response = await fetch('https://raw.githubusercontent.com/achannaung/Datasets/main/Villages_HZ.csv');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
+                if (!response.ok) throw new Error('Network response failure.');
                 const csvText = await response.text();
                 parseCSV(csvText);
                 showLoading(false);
             } catch (error) {
                 showLoading(false);
-                showError('Failed to load data: ' + error.message);
-                console.error('Error loading CSV:', error);
+                showError('Database link failed: ' + error.message);
             }
         }
 
         function parseCSV(csvText) {
             const lines = csvText.trim().split('\n');
-            headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+            headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
             
-            csvData = lines.slice(1).map(line => {
-                const values = parseCSVLine(line);
-                const row = {};
+            csvData = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
                 if (values.length === headers.length) {
-                    headers.forEach((header, index) => {
-                        row[header] = values[index];
-                    });
+                    const row = {};
+                    headers.forEach((h, idx) => row[h] = values[idx]);
+                    csvData.push(row);
                 }
-                return row;
-            }).filter(row => Object.keys(row).length > 0);
-            
-            console.log(`Loaded ${csvData.length} records.`);
-            populateSrFilter();
-        }
-
-        function populateSrFilter() {
-            const srColumn = headers.find(h => h.toLowerCase() === 'sr');
-            if (!srColumn) {
-                console.error("SR column not found for filter.");
-                return;
             }
-            const srValues = [...new Set(csvData.map(row => row[srColumn]))].sort();
-            srValues.forEach(value => {
-                if (value) {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = value;
-                    srFilter.appendChild(option);
-                }
-            });
         }
 
         function parseCSVLine(line) {
             const result = [];
             let current = '';
             let inQuotes = false;
-            for (const char of line) {
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
                     result.push(current.trim().replace(/"/g, ''));
                     current = '';
-                } else {
-                    current += char;
-                }
+                } else current += char;
             }
             result.push(current.trim().replace(/"/g, ''));
             return result;
         }
 
-        // --- Search and Filter Logic ---
+        function normalizeSearchText(value) {
+            return (value || '')
+                .toString()
+                .normalize('NFKC')
+                .toLowerCase()
+                .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                .replace(/ဈ/g, 'စျ')
+                .replace(/ဦး/g, 'ဦး')
+                .trim();
+        }
+
+        function makeSearchIndex(values) {
+            const normalized = values.map(normalizeSearchText).join(' ');
+            return {
+                normalized,
+                compact: normalized.replace(/[\s\-/()၊။,.'"`]+/g, '')
+            };
+        }
+
+        function matchesSearchTerm(index, term) {
+            const normalizedTerm = normalizeSearchText(term);
+            const compactTerm = normalizedTerm.replace(/[\s\-/()၊။,.'"`]+/g, '');
+            const keywords = normalizedTerm.split(/\s+/).filter(Boolean);
+
+            if (!normalizedTerm) return true;
+            if (index.normalized.includes(normalizedTerm) || index.compact.includes(compactTerm)) return true;
+
+            return keywords.every(keyword => {
+                const compactKeyword = keyword.replace(/[\s\-/()၊။,.'"`]+/g, '');
+                return index.normalized.includes(keyword) || index.compact.includes(compactKeyword);
+            });
+        }
+
         function searchData() {
-            const selectedSr = srFilter.value;
-            const searchTermTownship = searchInput.value.trim().toLowerCase();
-            const searchTermVillageMM = villageMmInput.value.trim().toLowerCase();
-
-            if (!selectedSr && !searchTermTownship && !searchTermVillageMM) {
-                showError('Please select a region or enter a search term.');
-                hideResults();
-                return;
-            }
-            if (csvData.length === 0) {
-                showError('Data not loaded. Please wait.');
-                hideResults();
+            const termTS = document.getElementById('searchInput').value;
+            const termVMM = document.getElementById('villageMmInput').value;
+            
+            if (!termTS && !termVMM) {
+                showError('Input Required: Enter Township or Village ID');
                 return;
             }
 
-            const srColumn = headers.find(h => h.toLowerCase() === 'sr');
-            const townshipColumn = headers.find(h => h.toLowerCase().includes('township'));
-            const villageMmColumn = headers.find(h => h.toLowerCase().includes('village_mm'));
+            hideError();
+            
+            const filtered = csvData.filter(row => {
+                const townshipIndex = makeSearchIndex([row['Township'], row['SR']]);
+                const villageIndex = makeSearchIndex([row['Village_MM'], row['Village']]);
+                const matchTS = matchesSearchTerm(townshipIndex, termTS);
+                const matchVMM = matchesSearchTerm(villageIndex, termVMM);
+                return matchTS && matchVMM;
+            });
 
-            let filteredData = csvData;
+            sortRows(filtered, 'Village_MM', 'asc');
+            currentSortColumn = 'Village_MM';
+            currentSortDirection = 'asc';
+            currentResults = filtered;
+            displayResults(filtered);
+        }
 
-            if (selectedSr) {
-                if (!srColumn) return showError('SR column not found.');
-                filteredData = filteredData.filter(row => row[srColumn] === selectedSr);
+        function displayResults(data) {
+            const wrapper = document.getElementById('resultsWrapper');
+            const countDisplay = document.getElementById('resultsCount');
+            const tableHeader = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+
+            if (data.length === 0) {
+                showError('No Intelligence Found for specified parameters.');
+                wrapper.style.display = 'none';
+                return;
             }
 
-            if (searchTermTownship) {
-                if (!townshipColumn) return showError('Township column not found.');
-                filteredData = filteredData.filter(row => row[townshipColumn]?.toLowerCase().includes(searchTermTownship));
-            }
+            countDisplay.innerText = `${data.length} Tactical Records Found`;
+            wrapper.style.display = 'block';
 
-            if (searchTermVillageMM) {
-                if (!villageMmColumn) return showError('Burmese Village Name column not found.');
-                filteredData = filteredData.filter(row => row[villageMmColumn]?.toLowerCase().includes(searchTermVillageMM));
-            }
+            // Generate Header
+            tableHeader.innerHTML = '';
+            const hRow = document.createElement('tr');
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.innerText = h;
+                th.style.cursor = 'pointer';
+                th.onclick = () => sortTable(h);
+                hRow.appendChild(th);
+            });
+            tableHeader.appendChild(hRow);
 
-            if (villageMmColumn) {
-                filteredData.sort((a, b) => (a[villageMmColumn] || '').localeCompare(b[villageMmColumn] || ''));
-                currentSortColumn = villageMmColumn;
-                currentSortDirection = 'asc';
-            }
+            // Generate Body
+            tableBody.innerHTML = '';
+            data.forEach(row => {
+                const rRow = document.createElement('tr');
+                headers.forEach(h => {
+                    const td = document.createElement('td');
+                    td.innerText = row[h] || '-';
+                    rRow.appendChild(td);
+                });
+                tableBody.appendChild(rRow);
+            });
+        }
 
-            currentResults = filteredData;
+        function sortTable(column) {
+            const direction = (currentSortColumn === column && currentSortDirection === 'asc') ? 'desc' : 'asc';
+            currentSortColumn = column;
+            currentSortDirection = direction;
+
+            sortRows(currentResults, column, direction);
+
             displayResults(currentResults);
         }
 
-        // --- Sorting Logic ---
-        function sortByColumn(columnName) {
+        function sortRows(rows, column, direction) {
+            rows.sort((a, b) => {
+                const valA = normalizeSearchText(a[column]);
+                const valB = normalizeSearchText(b[column]);
+                return direction === 'asc'
+                    ? valA.localeCompare(valB, 'my')
+                    : valB.localeCompare(valA, 'my');
+            });
+        }
+
+        function exportToCSV() {
             if (currentResults.length === 0) return;
-
-            const direction = (currentSortColumn === columnName && currentSortDirection === 'asc') ? 'desc' : 'asc';
-            
-            currentResults.sort((a, b) => {
-                const valueA = (a[columnName] || '').toString().toLowerCase();
-                const valueB = (b[columnName] || '').toString().toLowerCase();
-                return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+            let csvContent = headers.join(",") + "\n";
+            currentResults.forEach(row => {
+                csvContent += headers.map(h => `"${row[h] || ''}"`).join(",") + "\n";
             });
-
-            currentSortColumn = columnName;
-            currentSortDirection = direction;
             
-            displayResults(currentResults, true);
-        }
-
-        // --- UI Display Functions ---
-        function displayResults(data, isSortAction = false) {
-            hideError();
-            
-            if (data.length === 0) {
-                showInfo('No results found for your search.', 'warn');
-                tableContainer.style.display = 'none';
-                return;
-            }
-
-            if (isSortAction) {
-                const directionText = currentSortDirection === 'asc' ? 'A-Z' : 'Z-A';
-                showInfo(`${data.length} result(s) sorted by "${currentSortColumn}" (${directionText})`, 'success');
-            } else {
-                showInfo(`Found ${data.length} result(s).`, 'success');
-            }
-            
-            createTable(data);
-            tableContainer.style.display = 'block';
-        }
-
-        function createTable(data) {
-            tableHeader.innerHTML = '';
-            const headerRow = document.createElement('tr');
-            headers.forEach(header => {
-                const th = document.createElement('th');
-                th.className = 'px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer';
-                th.onclick = () => sortByColumn(header);
-                
-                let headerHTML = header;
-                if (currentSortColumn === header) {
-                    const indicator = currentSortDirection === 'asc' ? '↑' : '↓';
-                    headerHTML += `<span class="sort-indicator">${indicator}</span>`;
-                }
-                th.innerHTML = headerHTML;
-                headerRow.appendChild(th);
-            });
-            tableHeader.appendChild(headerRow);
-
-            tableBody.innerHTML = '';
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-white hover:bg-opacity-10';
-                headers.forEach(header => {
-                    const td = document.createElement('td');
-                    td.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
-                    td.textContent = row[header] || '';
-                    tr.appendChild(td);
-                });
-                tableBody.appendChild(tr);
-            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Monitor_Export_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function clearResults() {
-            searchInput.value = '';
-            villageMmInput.value = '';
-            srFilter.value = '';
-            hideResults();
+            document.getElementById('searchInput').value = '';
+            document.getElementById('villageMmInput').value = '';
+            document.getElementById('resultsWrapper').style.display = 'none';
             hideError();
-            resultsInfo.style.display = 'none';
-        }
-        
-        function hideResults() {
-            tableContainer.style.display = 'none';
-            currentResults = [];
-            currentSortColumn = '';
         }
 
-        // --- UI Helpers ---
-        function showLoading(show) { loadingMessage.style.display = show ? 'block' : 'none'; }
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            resultsInfo.style.display = 'none';
+        function showLoading(show) { document.getElementById('loadingMessage').style.display = show ? 'block' : 'none'; }
+        function showError(msg) { 
+            const err = document.getElementById('errorMessage');
+            err.innerText = msg;
+            err.style.display = 'block';
         }
-        function hideError() { errorMessage.style.display = 'none'; }
-        function showInfo(message, type) {
-            resultsInfo.textContent = message;
-            resultsInfo.className = 'mt-4 text-center font-medium h-6 drop-shadow ';
-            if (type === 'success') resultsInfo.classList.add('text-lime-200');
-            else if (type === 'warn') resultsInfo.classList.add('text-amber-200');
-            resultsInfo.style.display = 'block';
-        }
+        function hideError() { document.getElementById('errorMessage').style.display = 'none'; }
     </script>
 </body>
 </html>
